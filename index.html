@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FORFX — Content Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & Base ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:    #7C3AED;
+      --gold-lt: #9F67FF;
+      --dark:    #0a0a0a;
+      --surface: #111111;
+      --card:    #161616;
+      --border:  #262626;
+      --muted:   #555566;
+      --text:    #F0F0F0;
+      --sub:     #888899;
+      --green:   #22C55E;
+      --red:     #EF4444;
+      --blue:    #3B82F6;
+      --purple:  #9F67FF;
+      --sidebar-w: 240px;
+    }
+    html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--dark); color: var(--text); }
+
+    /* ─── Screens ─── */
+    .screen { display: none; min-height: 100vh; }
+    .screen.active { display: flex; }
+
+    /* ─── AUTH SCREENS ─── */
+    #auth-screen {
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at 60% 30%, #150d2a 0%, #0a0a0a 70%);
+      position: relative;
+      overflow: hidden;
+    }
+    #auth-screen::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%);
+      top: -200px; right: -200px;
+      border-radius: 50%;
+    }
+    #auth-screen::after {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%);
+      bottom: -100px; left: -100px;
+      border-radius: 50%;
+    }
+
+    .auth-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    }
+    .auth-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+    .auth-logo .logo-mark {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-lt));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 18px; color: #ffffff;
+    }
+    .auth-logo .logo-text { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+    .auth-logo .logo-text span { color: var(--gold); }
+
+    .auth-title { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+    .auth-sub   { font-size: 14px; color: var(--sub); margin-bottom: 32px; }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--sub); margin-bottom: 6px; }
+    .form-group input {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus { border-color: var(--gold); }
+    .form-group input::placeholder { color: var(--muted); }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-lt));
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 13px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s, transform 0.1s;
+      margin-top: 8px;
+    }
+    .btn-primary:hover  { opacity: 0.92; }
+    .btn-primary:active { transform: scale(0.99); }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 14px;
+      color: var(--sub);
+    }
+    .auth-footer a { color: var(--gold); text-decoration: none; font-weight: 500; cursor: pointer; }
+    .auth-footer a:hover { text-decoration: underline; }
+
+    .auth-error {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: #FCA5A5;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .auth-success {
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #86EFAC;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    /* ─── DASHBOARD SCREEN ─── */
+    #dashboard-screen { flex-direction: row; }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo .logo-mark {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-lt));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 15px; color: #ffffff;
+    }
+    .sidebar-logo .logo-text { font-size: 16px; font-weight: 700; letter-spacing: 1px; }
+    .sidebar-logo .logo-text span { color: var(--gold); }
+
+    .sidebar-section { padding: 20px 12px 8px; }
+    .sidebar-section-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 1.2px;
+      color: var(--muted); text-transform: uppercase;
+      padding: 0 8px; margin-bottom: 6px;
+    }
+    .nav-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 14px; font-weight: 500;
+      color: var(--sub);
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 2px;
+      text-decoration: none;
+    }
+    .nav-link:hover  { background: var(--card); color: var(--text); }
+    .nav-link.active { background: rgba(124,58,237,0.12); color: var(--gold); }
+    .nav-link .icon  { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+    .nav-link .badge {
+      margin-left: auto;
+      background: var(--gold);
+      color: #ffffff;
+      font-size: 11px; font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 20px;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px 12px;
+      border-top: 1px solid var(--border);
+    }
+    .sidebar-user {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .sidebar-user:hover { background: var(--card); }
+    .avatar-sm {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-lt));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #ffffff;
+      flex-shrink: 0;
+    }
+    .sidebar-user-info .name  { font-size: 13px; font-weight: 600; }
+    .sidebar-user-info .role  { font-size: 11px; color: var(--sub); }
+
+    /* Main area */
+    .main-area {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 64px;
+      display: flex; align-items: center;
+      position: sticky; top: 0; z-index: 50;
+      gap: 16px;
+    }
+    .header-title { font-size: 18px; font-weight: 700; flex: 1; }
+    .header-date { font-size: 13px; color: var(--sub); }
+
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .icon-btn {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 16px;
+      transition: background 0.15s;
+      position: relative;
+    }
+    .icon-btn:hover { background: var(--border); }
+    .notif-dot {
+      position: absolute; top: 6px; right: 6px;
+      width: 7px; height: 7px;
+      background: var(--gold); border-radius: 50%;
+    }
+
+    .avatar-lg {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-lt));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #ffffff;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .header-user { display: flex; align-items: center; gap: 10px; }
+    .header-user .info .name { font-size: 14px; font-weight: 600; }
+    .header-user .info .role { font-size: 12px; color: var(--sub); }
+
+    /* Content */
+    .content { padding: 28px; flex: 1; }
+
+    /* Welcome banner */
+    .welcome-banner {
+      background: linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(59,130,246,0.08) 100%);
+      border: 1px solid rgba(124,58,237,0.2);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .welcome-text h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .welcome-text p  { font-size: 14px; color: var(--sub); }
+    .welcome-text .gold { color: var(--gold); }
+    .welcome-meta { display: flex; gap: 20px; flex-shrink: 0; }
+    .meta-stat { text-align: center; }
+    .meta-stat .val { font-size: 22px; font-weight: 700; color: var(--gold); }
+    .meta-stat .lbl { font-size: 11px; color: var(--sub); }
+
+    /* Grid */
+    .grid { display: grid; gap: 20px; }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .col-span-2 { grid-column: span 2; }
+
+    /* Card */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: rgba(124,58,237,0.2); }
+
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 15px; font-weight: 600;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title .icon { font-size: 16px; }
+    .card-action {
+      font-size: 12px; color: var(--gold);
+      cursor: pointer; font-weight: 500;
+    }
+    .card-action:hover { text-decoration: underline; }
+
+    /* Stat cards */
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+    }
+    .stat-top {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .stat-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .stat-icon.gold   { background: rgba(124,58,237,0.15); }
+    .stat-icon.green  { background: rgba(34,197,94,0.15); }
+    .stat-icon.blue   { background: rgba(59,130,246,0.15); }
+    .stat-icon.purple { background: rgba(168,85,247,0.15); }
+    .stat-badge {
+      font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 20px;
+    }
+    .stat-badge.up   { background: rgba(34,197,94,0.15); color: var(--green); }
+    .stat-badge.down { background: rgba(239,68,68,0.15); color: var(--red); }
+    .stat-val  { font-size: 28px; font-weight: 700; margin-bottom: 2px; }
+    .stat-lbl  { font-size: 13px; color: var(--sub); }
+
+    /* Calendar widget */
+    .calendar-list { list-style: none; }
+    .calendar-list li {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .calendar-list li:last-child { border-bottom: none; padding-bottom: 0; }
+    .cal-date {
+      width: 44px; height: 44px;
+      background: var(--surface);
+      border-radius: 10px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .cal-date .day  { font-size: 16px; font-weight: 700; line-height: 1; }
+    .cal-date .mon  { font-size: 10px; color: var(--sub); text-transform: uppercase; }
+    .cal-info { flex: 1; min-width: 0; }
+    .cal-info .title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cal-info .meta  { font-size: 12px; color: var(--sub); margin-top: 2px; }
+    .platform-tag {
+      font-size: 11px; font-weight: 600;
+      padding: 3px 8px; border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .tag-ig  { background: rgba(225,48,108,0.15); color: #F472B6; }
+    .tag-yt  { background: rgba(239,68,68,0.15);  color: #FCA5A5; }
+    .tag-li  { background: rgba(59,130,246,0.15); color: #93C5FD; }
+    .tag-tw  { background: rgba(29,161,242,0.15); color: #7DD3FC; }
+
+    /* Script queue */
+    .script-list { list-style: none; }
+    .script-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .script-item:last-child { border-bottom: none; }
+    .script-num {
+      width: 28px; height: 28px;
+      background: var(--surface);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600; color: var(--gold);
+      flex-shrink: 0;
+    }
+    .script-info { flex: 1; min-width: 0; }
+    .script-info .title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .script-info .meta  { font-size: 12px; color: var(--sub); margin-top: 2px; }
+    .status-pill {
+      font-size: 11px; font-weight: 600;
+      padding: 3px 9px; border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .pill-draft    { background: rgba(90,100,128,0.2); color: var(--sub); }
+    .pill-review   { background: rgba(124,58,237,0.15); color: var(--gold); }
+    .pill-approved { background: rgba(34,197,94,0.15); color: var(--green); }
+
+    /* Ideas board */
+    .idea-cards { display: flex; flex-direction: column; gap: 10px; }
+    .idea-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex; align-items: flex-start; gap: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .idea-card:hover { border-color: rgba(124,58,237,0.3); }
+    .idea-card .bullet {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+    .idea-card .text { font-size: 13px; line-height: 1.5; }
+    .idea-card .chips { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+    .chip {
+      font-size: 11px; padding: 2px 8px;
+      border-radius: 20px; border: 1px solid var(--border);
+      color: var(--sub);
+    }
+
+    /* Progress bar */
+    .progress-row { margin-bottom: 14px; }
+    .progress-row:last-child { margin-bottom: 0; }
+    .progress-meta { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+    .progress-meta .label { font-weight: 500; }
+    .progress-meta .pct   { color: var(--sub); }
+    .progress-bar { height: 6px; background: var(--surface); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+    .fill-gold   { background: linear-gradient(90deg, var(--gold), var(--gold-lt)); }
+    .fill-green  { background: linear-gradient(90deg, #16A34A, var(--green)); }
+    .fill-blue   { background: linear-gradient(90deg, #2563EB, var(--blue)); }
+    .fill-purple { background: linear-gradient(90deg, #7C3AED, var(--purple)); }
+
+    /* Quick note */
+    .quick-note textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 13px;
+      color: var(--text);
+      font-family: inherit;
+      resize: none;
+      height: 90px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .quick-note textarea:focus { border-color: var(--gold); }
+    .quick-note textarea::placeholder { color: var(--muted); }
+    .quick-note-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
+    .btn-sm {
+      background: linear-gradient(135deg, var(--gold), var(--gold-lt));
+      color: #ffffff;
+      border: none; border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+      transition: opacity 0.2s;
+    }
+    .btn-sm:hover { opacity: 0.88; }
+
+    /* Engagement chart (CSS bars) */
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 100px;
+      margin-bottom: 8px;
+    }
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+    .bar {
+      width: 100%;
+      border-radius: 4px 4px 0 0;
+      min-height: 4px;
+      transition: height 0.8s ease;
+    }
+    .bar.ig  { background: linear-gradient(180deg, #E1306C, #833AB4); }
+    .bar.yt  { background: linear-gradient(180deg, #FF0000, #CC0000); }
+    .bar.ln  { background: linear-gradient(180deg, #0A66C2, #0082CA); }
+    .bar-lbl { font-size: 10px; color: var(--sub); }
+
+    .chart-legend {
+      display: flex; gap: 16px; flex-wrap: wrap;
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--sub); }
+    .legend-dot  { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-ig { background: #E1306C; }
+    .dot-yt { background: #FF0000; }
+    .dot-ln { background: #0A66C2; }
+
+    /* Logout btn */
+    .logout-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 14px; font-weight: 500;
+      color: var(--sub);
+      cursor: pointer;
+      transition: all 0.15s;
+      background: none; border: none; font-family: inherit; width: 100%;
+    }
+    .logout-btn:hover { background: rgba(239,68,68,0.1); color: #FCA5A5; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--green);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 14px; font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      z-index: 9999;
+      transform: translateY(20px); opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* Filming Tracker */
+    .filming-list { list-style: none; }
+    .filming-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .filming-item:last-child { border-bottom: none; }
+    .filming-toggle {
+      width: 28px; height: 28px; flex-shrink: 0;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      transition: all 0.2s;
+      background: transparent;
+      cursor: pointer;
+    }
+    .filming-toggle.filmed {
+      background: rgba(124,58,237,0.18);
+      border-color: var(--gold);
+      color: var(--gold-lt);
+    }
+    .filming-toggle.not-filmed {
+      border-color: var(--border);
+      color: transparent;
+    }
+    .filming-toggle.not-filmed:hover {
+      border-color: var(--gold);
+      color: rgba(124,58,237,0.5);
+    }
+    .filming-info { flex: 1; min-width: 0; }
+    .filming-info .title {
+      font-size: 14px; font-weight: 500;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .filming-info .meta { font-size: 12px; color: var(--sub); margin-top: 2px; }
+    .filming-status {
+      font-size: 11px; font-weight: 600;
+      padding: 3px 10px; border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .status-filmed     { background: rgba(124,58,237,0.15); color: var(--gold-lt); }
+    .status-not-filmed { background: rgba(90,90,110,0.2);   color: var(--sub); }
+    .filming-summary {
+      display: flex; gap: 16px; margin-top: 16px;
+      padding-top: 14px; border-top: 1px solid var(--border);
+    }
+    .filming-summary .sm-stat { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sub); }
+    .filming-summary .sm-stat strong { color: var(--text); font-weight: 600; }
+    .filming-summary .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .filming-summary .dot.purple { background: var(--gold); }
+    .filming-summary .dot.grey   { background: var(--muted); }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+      .col-span-2 { grid-column: span 1; }
+      .welcome-meta { display: none; }
+    }
+    @media (max-width: 640px) {
+      .sidebar { display: none; }
+      .main-area { margin-left: 0; }
+      .grid-3, .grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     AUTH SCREEN (Login / Sign Up)
+════════════════════════════════════════ -->
+<div id="auth-screen" class="screen active">
+  <div class="auth-box">
+
+    <!-- Login Form -->
+    <div id="login-form">
+      <div class="auth-logo">
+        <div class="logo-mark">F</div>
+        <div class="logo-text">FOR<span>FX</span></div>
+      </div>
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-sub">Sign in to your Content Studio</div>
+
+      <div id="login-error" class="auth-error">Invalid credentials. Please try again.</div>
+
+      <div class="form-group">
+        <label>Email address</label>
+        <input type="email" id="login-email" placeholder="you@forfx.com" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="••••••••" />
+      </div>
+
+      <button class="btn-primary" onclick="handleLogin()">Sign In</button>
+
+      <div class="auth-footer">
+        Don't have an account? <a onclick="showSignUp()">Sign Up</a>
+      </div>
+    </div>
+
+    <!-- Sign Up Form -->
+    <div id="signup-form" style="display:none">
+      <div class="auth-logo">
+        <div class="logo-mark">F</div>
+        <div class="logo-text">FOR<span>FX</span></div>
+      </div>
+      <div class="auth-title">Create account</div>
+      <div class="auth-sub">Join the FORFX Content Studio</div>
+
+      <div id="signup-success" class="auth-success">Account created! You can now sign in.</div>
+      <div id="signup-error" class="auth-error">Please fill in all fields.</div>
+
+      <div class="form-group">
+        <label>Full name</label>
+        <input type="text" id="signup-name" placeholder="Your full name" />
+      </div>
+      <div class="form-group">
+        <label>Email address</label>
+        <input type="email" id="signup-email" placeholder="you@forfx.com" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="signup-pass" placeholder="Create a password" />
+      </div>
+
+      <button class="btn-primary" onclick="handleSignUp()">Create Account</button>
+
+      <div class="auth-footer">
+        Already have an account? <a onclick="showLogin()">Sign In</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     DASHBOARD SCREEN
+════════════════════════════════════════ -->
+<div id="dashboard-screen" class="screen">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">F</div>
+      <div class="logo-text">FOR<span>FX</span></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Overview</div>
+      <a class="nav-link active" onclick="setNav(this)">
+        <span class="icon">⊞</span> Dashboard
+      </a>
+      <a class="nav-link" onclick="setNav(this)">
+        <span class="icon">📅</span> Content Calendar
+        <span class="badge">3</span>
+      </a>
+      <a class="nav-link" onclick="setNav(this)">
+        <span class="icon">📊</span> Analytics
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Content</div>
+      <a class="nav-link" onclick="setNav(this)">
+        <span class="icon">📝</span> Script Library
+        <span class="badge">5</span>
+      </a>
+      <a class="nav-link" onclick="setNav(this)">
+        <span class="icon">💡</span> Ideas Board
+      </a>
+      <a class="nav-link" onclick="setNav(this)">
+        <span class="icon">🎬</span> Video Projects
+      </a>
+      <a class="nav-link" onclick="setNav(this)">
+        <span class="icon">🖼️</span> Brand Assets
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Platforms</div>
+      <a class="nav-link" onclick="setNav(this)">
+        <span class="icon">📸</span> Instagram
+      </a>
+      <a class="nav-link" onclick="setNav(this)">
+        <span class="icon">▶️</span> YouTube
+      </a>
+      <a class="nav-link" onclick="setNav(this)">
+        <span class="icon">💼</span> LinkedIn
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Settings</div>
+      <a class="nav-link" onclick="setNav(this)">
+        <span class="icon">⚙️</span> Preferences
+      </a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar-sm" id="sidebar-avatar">?</div>
+        <div class="sidebar-user-info">
+          <div class="name" id="sidebar-name">—</div>
+          <div class="role">Content Creator</div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="handleLogout()">
+        <span>↩</span> Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-area">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-title">Dashboard</div>
+      <div class="header-date" id="header-date"></div>
+      <div class="header-actions">
+        <div class="icon-btn" title="Search">🔍</div>
+        <div class="icon-btn" title="Notifications">
+          🔔 <span class="notif-dot"></span>
+        </div>
+        <div class="header-user">
+          <div class="info" style="text-align:right">
+            <div class="name" id="header-name">—</div>
+            <div class="role">Content Creator · FORFX</div>
+          </div>
+          <div class="avatar-lg" id="header-avatar">?</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="content">
+
+      <!-- Welcome banner -->
+      <div class="welcome-banner">
+        <div class="welcome-text">
+          <h2>Good <span class="gold" id="time-greeting">morning</span>, <span id="welcome-name">there</span> 👋</h2>
+          <p>Here's your content overview for this week. You have <strong>3 posts scheduled</strong> and <strong>2 scripts</strong> awaiting review.</p>
+        </div>
+        <div class="welcome-meta">
+          <div class="meta-stat">
+            <div class="val">12</div>
+            <div class="lbl">Posts This Month</div>
+          </div>
+          <div class="meta-stat">
+            <div class="val">5</div>
+            <div class="lbl">Scripts Active</div>
+          </div>
+          <div class="meta-stat">
+            <div class="val">84%</div>
+            <div class="lbl">Calendar Fill</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="grid grid-3" style="margin-bottom:20px">
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon gold">📸</div>
+            <span class="stat-badge up">↑ 12%</span>
+          </div>
+          <div class="stat-val">67K</div>
+          <div class="stat-lbl">Instagram Followers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon red" style="background:rgba(239,68,68,0.15)">▶️</div>
+            <span class="stat-badge up">↑ 8%</span>
+          </div>
+          <div class="stat-val">26.8K</div>
+          <div class="stat-lbl">YouTube Subscribers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon purple">📈</div>
+            <span class="stat-badge up">↑ 21%</span>
+          </div>
+          <div class="stat-val">3.6%</div>
+          <div class="stat-lbl">Avg. Engagement Rate</div>
+        </div>
+      </div>
+
+      <!-- Row 2: Calendar + Script Queue -->
+      <div class="grid grid-2" style="margin-bottom:20px">
+
+        <!-- Content Calendar -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="icon">📅</span> Upcoming Posts</div>
+            <span class="card-action">View all →</span>
+          </div>
+          <ul class="calendar-list">
+            <li>
+              <div class="cal-date"><div class="day">10</div><div class="mon">Apr</div></div>
+              <div class="cal-info">
+                <div class="title">FORFX Prop Firm Overview – Reel</div>
+                <div class="meta">9:00 AM · 30s hook + CTA</div>
+              </div>
+              <span class="platform-tag tag-ig">IG</span>
+            </li>
+            <li>
+              <div class="cal-date"><div class="day">11</div><div class="mon">Apr</div></div>
+              <div class="cal-info">
+                <div class="title">How to Pass a Prop Firm Challenge</div>
+                <div class="meta">12:00 PM · Long-form video</div>
+              </div>
+              <span class="platform-tag tag-yt">YT</span>
+            </li>
+            <li>
+              <div class="cal-date"><div class="day">13</div><div class="mon">Apr</div></div>
+              <div class="cal-info">
+                <div class="title">Risk Management for Funded Traders</div>
+                <div class="meta">6:00 PM · Carousel post</div>
+              </div>
+              <span class="platform-tag tag-ig">IG</span>
+            </li>
+            <li>
+              <div class="cal-date"><div class="day">15</div><div class="mon">Apr</div></div>
+              <div class="cal-info">
+                <div class="title">FORFX April Challenge Promo</div>
+                <div class="meta">10:00 AM · Story + Feed</div>
+              </div>
+              <span class="platform-tag tag-li">LI</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Script Queue -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="icon">📝</span> Script Queue</div>
+            <span class="card-action">Open library →</span>
+          </div>
+          <ul class="script-list">
+            <li class="script-item">
+              <div class="script-num">01</div>
+              <div class="script-info">
+                <div class="title">Why Most Traders Blow Funded Accounts</div>
+                <div class="meta">YouTube · ~8 min · 1,200 words</div>
+              </div>
+              <span class="status-pill pill-approved">Approved</span>
+            </li>
+            <li class="script-item">
+              <div class="script-num">02</div>
+              <div class="script-info">
+                <div class="title">FORFX vs Competitors – Short</div>
+                <div class="meta">IG Reel · ~45 sec · 120 words</div>
+              </div>
+              <span class="status-pill pill-review">In Review</span>
+            </li>
+            <li class="script-item">
+              <div class="script-num">03</div>
+              <div class="script-info">
+                <div class="title">5 Rules Every Funded Trader Follows</div>
+                <div class="meta">YouTube Shorts · ~60 sec</div>
+              </div>
+              <span class="status-pill pill-review">In Review</span>
+            </li>
+            <li class="script-item">
+              <div class="script-num">04</div>
+              <div class="script-info">
+                <div class="title">April Monthly Wrap — FORFX Recap</div>
+                <div class="meta">IG + LinkedIn · 600 words</div>
+              </div>
+              <span class="status-pill pill-draft">Draft</span>
+            </li>
+            <li class="script-item">
+              <div class="script-num">05</div>
+              <div class="script-info">
+                <div class="title">Beginner's Guide to Prop Trading</div>
+                <div class="meta">YouTube · ~12 min · 1,800 words</div>
+              </div>
+              <span class="status-pill pill-draft">Draft</span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Filming Tracker (full-width) -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">🎬</span> Filming Tracker</div>
+          <span class="card-action" onclick="resetFilming()">Reset →</span>
+        </div>
+        <ul class="filming-list" id="filming-list">
+          <li class="filming-item" onclick="toggleFilm(this)">
+            <div class="filming-toggle filmed">✓</div>
+            <div class="filming-info">
+              <div class="title">FORFX Prop Firm Overview – 30s Reel</div>
+              <div class="meta">IG Reel · Talking head + B-roll · Deadline: Apr 10</div>
+            </div>
+            <span class="platform-tag tag-ig">IG</span>
+            <span class="filming-status status-filmed">Filmed</span>
+          </li>
+          <li class="filming-item" onclick="toggleFilm(this)">
+            <div class="filming-toggle filmed">✓</div>
+            <div class="filming-info">
+              <div class="title">Why Most Traders Blow Funded Accounts</div>
+              <div class="meta">YouTube Long-form · ~8 min · Deadline: Apr 11</div>
+            </div>
+            <span class="platform-tag tag-yt">YT</span>
+            <span class="filming-status status-filmed">Filmed</span>
+          </li>
+          <li class="filming-item" onclick="toggleFilm(this)">
+            <div class="filming-toggle not-filmed">✓</div>
+            <div class="filming-info">
+              <div class="title">5 Rules Every Funded Trader Follows</div>
+              <div class="meta">YouTube Shorts · ~60 sec · Deadline: Apr 13</div>
+            </div>
+            <span class="platform-tag tag-yt">YT</span>
+            <span class="filming-status status-not-filmed">Not Filmed</span>
+          </li>
+          <li class="filming-item" onclick="toggleFilm(this)">
+            <div class="filming-toggle not-filmed">✓</div>
+            <div class="filming-info">
+              <div class="title">Risk Management for Funded Traders – Carousel Voiceover</div>
+              <div class="meta">IG Carousel · Screen recording + VO · Deadline: Apr 13</div>
+            </div>
+            <span class="platform-tag tag-ig">IG</span>
+            <span class="filming-status status-not-filmed">Not Filmed</span>
+          </li>
+          <li class="filming-item" onclick="toggleFilm(this)">
+            <div class="filming-toggle not-filmed">✓</div>
+            <div class="filming-info">
+              <div class="title">FORFX vs Competitors – Short Comparison</div>
+              <div class="meta">IG Reel · ~45 sec · Deadline: Apr 14</div>
+            </div>
+            <span class="platform-tag tag-ig">IG</span>
+            <span class="filming-status status-not-filmed">Not Filmed</span>
+          </li>
+          <li class="filming-item" onclick="toggleFilm(this)">
+            <div class="filming-toggle not-filmed">✓</div>
+            <div class="filming-info">
+              <div class="title">FORFX April Challenge Promo – Announcement</div>
+              <div class="meta">LinkedIn + IG Story · Talking head · Deadline: Apr 15</div>
+            </div>
+            <span class="platform-tag tag-li">LI</span>
+            <span class="filming-status status-not-filmed">Not Filmed</span>
+          </li>
+          <li class="filming-item" onclick="toggleFilm(this)">
+            <div class="filming-toggle not-filmed">✓</div>
+            <div class="filming-info">
+              <div class="title">Beginner's Guide to Prop Trading – Full Video</div>
+              <div class="meta">YouTube · ~12 min · B-roll heavy · Deadline: Apr 18</div>
+            </div>
+            <span class="platform-tag tag-yt">YT</span>
+            <span class="filming-status status-not-filmed">Not Filmed</span>
+          </li>
+        </ul>
+        <div class="filming-summary">
+          <div class="sm-stat"><div class="dot purple"></div> <strong id="filmed-count">2</strong> Filmed</div>
+          <div class="sm-stat"><div class="dot grey"></div> <strong id="unfilmed-count">5</strong> Not Filmed</div>
+          <div class="sm-stat" style="margin-left:auto; color: var(--gold-lt)">Click any row to toggle status</div>
+        </div>
+      </div>
+
+      <!-- Row 3: Engagement + Goals + Ideas + Quick Note -->
+      <div class="grid grid-3">
+
+        <!-- Engagement Chart -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="icon">📊</span> Weekly Engagement</div>
+            <span class="card-action">Apr 2026</span>
+          </div>
+          <div class="bar-chart">
+            <div class="bar-col">
+              <div class="bar ig" style="height:62%"></div>
+              <div class="bar-lbl">W1</div>
+            </div>
+            <div class="bar-col">
+              <div class="bar ig" style="height:78%"></div>
+              <div class="bar-lbl">W2</div>
+            </div>
+            <div class="bar-col">
+              <div class="bar ig" style="height:54%"></div>
+              <div class="bar-lbl">W3</div>
+            </div>
+            <div class="bar-col">
+              <div class="bar ig" style="height:89%"></div>
+              <div class="bar-lbl">W4</div>
+            </div>
+            <div class="bar-col" style="opacity:0.4">
+              <div class="bar ig" style="height:30%"></div>
+              <div class="bar-lbl">W5</div>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot dot-ig"></div> Instagram</div>
+          </div>
+          <div style="margin-top:14px; border-top:1px solid var(--border); padding-top:14px">
+            <div class="bar-chart" style="height:80px">
+              <div class="bar-col">
+                <div class="bar yt" style="height:45%"></div>
+                <div class="bar-lbl">W1</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar yt" style="height:60%"></div>
+                <div class="bar-lbl">W2</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar yt" style="height:72%"></div>
+                <div class="bar-lbl">W3</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar yt" style="height:80%"></div>
+                <div class="bar-lbl">W4</div>
+              </div>
+              <div class="bar-col" style="opacity:0.4">
+                <div class="bar yt" style="height:20%"></div>
+                <div class="bar-lbl">W5</div>
+              </div>
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item"><div class="legend-dot dot-yt"></div> YouTube</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly Goals -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="icon">🎯</span> April Goals</div>
+            <span class="card-action">Edit →</span>
+          </div>
+          <div class="progress-row">
+            <div class="progress-meta">
+              <span class="label">IG Reels Published</span>
+              <span class="pct">8 / 12</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill fill-gold" style="width:67%"></div></div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-meta">
+              <span class="label">YouTube Videos</span>
+              <span class="pct">2 / 4</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill fill-red" style="width:50%; background: linear-gradient(90deg,#CC0000,#FF0000)"></div></div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-meta">
+              <span class="label">Scripts Written</span>
+              <span class="pct">5 / 6</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill fill-green" style="width:83%"></div></div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-meta">
+              <span class="label">Follower Growth (IG)</span>
+              <span class="pct">+1.2K / +2K</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill fill-blue" style="width:60%"></div></div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-meta">
+              <span class="label">Calendar Filled</span>
+              <span class="pct">84%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill fill-purple" style="width:84%"></div></div>
+          </div>
+        </div>
+
+        <!-- Ideas + Quick Note -->
+        <div style="display:flex; flex-direction:column; gap:20px;">
+
+          <!-- Ideas Board -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><span class="icon">💡</span> Content Ideas</div>
+              <span class="card-action">+ Add →</span>
+            </div>
+            <div class="idea-cards">
+              <div class="idea-card">
+                <div class="bullet" style="background:var(--gold-lt)"></div>
+                <div>
+                  <div class="text">Day in the life of a FORFX funded trader</div>
+                  <div class="chips">
+                    <span class="chip">IG Reel</span>
+                    <span class="chip">YT Short</span>
+                  </div>
+                </div>
+              </div>
+              <div class="idea-card">
+                <div class="bullet" style="background:var(--blue)"></div>
+                <div>
+                  <div class="text">Reacting to trader mistakes on social media</div>
+                  <div class="chips">
+                    <span class="chip">YouTube</span>
+                    <span class="chip">Educational</span>
+                  </div>
+                </div>
+              </div>
+              <div class="idea-card">
+                <div class="bullet" style="background:var(--green)"></div>
+                <div>
+                  <div class="text">"Before FORFX vs After FORFX" testimonial series</div>
+                  <div class="chips">
+                    <span class="chip">IG Series</span>
+                    <span class="chip">Social Proof</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Note -->
+          <div class="card quick-note">
+            <div class="card-header" style="margin-bottom:12px">
+              <div class="card-title"><span class="icon">🗒️</span> Quick Note</div>
+            </div>
+            <textarea id="quick-note-text" placeholder="Jot down a script idea, hook line, or content note…"></textarea>
+            <div class="quick-note-actions">
+              <button class="btn-sm" onclick="saveNote()">Save Note</button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<script>
+  /* ── State ── */
+  let currentUser = { name: 'Content Creator', email: '' };
+
+  /* ── Routing ── */
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+  function showSignUp() {
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('signup-form').style.display = 'block';
+    clearMessages();
+  }
+  function showLogin() {
+    document.getElementById('signup-form').style.display = 'none';
+    document.getElementById('login-form').style.display = 'block';
+    clearMessages();
+  }
+  function clearMessages() {
+    ['login-error','signup-error','signup-success'].forEach(id => {
+      document.getElementById(id).style.display = 'none';
+    });
+  }
+
+  /* ── Auth ── */
+  function handleLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-pass').value;
+    if (!email || !pass) {
+      document.getElementById('login-error').textContent = 'Please enter your email and password.';
+      document.getElementById('login-error').style.display = 'block';
+      return;
+    }
+    const stored = JSON.parse(localStorage.getItem('forfx_user') || 'null');
+    if (stored && stored.email === email) {
+      currentUser = stored;
+    } else {
+      currentUser = { name: email.split('@')[0].replace(/[._]/g, ' '), email };
+    }
+    document.getElementById('login-error').style.display = 'none';
+    enterDashboard();
+  }
+
+  function handleSignUp() {
+    const name  = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const pass  = document.getElementById('signup-pass').value;
+    document.getElementById('signup-error').style.display = 'none';
+    if (!name || !email || !pass) {
+      document.getElementById('signup-error').style.display = 'block';
+      return;
+    }
+    localStorage.setItem('forfx_user', JSON.stringify({ name, email }));
+    document.getElementById('signup-success').style.display = 'block';
+    setTimeout(() => {
+      document.getElementById('signup-success').style.display = 'none';
+      showLogin();
+      document.getElementById('login-email').value = email;
+    }, 1800);
+  }
+
+  function handleLogout() {
+    show('auth-screen');
+    showLogin();
+    document.getElementById('login-email').value = '';
+    document.getElementById('login-pass').value  = '';
+  }
+
+  /* ── Dashboard init ── */
+  function enterDashboard() {
+    const initials = currentUser.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+    const displayName = capitalize(currentUser.name);
+
+    document.getElementById('header-name').textContent   = displayName;
+    document.getElementById('welcome-name').textContent  = displayName.split(' ')[0];
+    document.getElementById('sidebar-name').textContent  = displayName;
+    document.getElementById('header-avatar').textContent = initials;
+    document.getElementById('sidebar-avatar').textContent = initials;
+
+    // Greeting
+    const h = new Date().getHours();
+    const greeting = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+    document.getElementById('time-greeting').textContent = greeting;
+
+    // Date
+    document.getElementById('header-date').textContent =
+      new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+    // Restore note
+    const saved = localStorage.getItem('forfx_note');
+    if (saved) document.getElementById('quick-note-text').value = saved;
+
+    show('dashboard-screen');
+    showToast('Welcome back, ' + displayName.split(' ')[0] + '! ✓');
+  }
+
+  /* ── Nav ── */
+  function setNav(el) {
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    el.classList.add('active');
+    const label = el.textContent.trim().split('\n')[0].trim();
+    document.querySelector('.header-title').textContent = label;
+  }
+
+  /* ── Quick note ── */
+  function saveNote() {
+    const val = document.getElementById('quick-note-text').value;
+    localStorage.setItem('forfx_note', val);
+    showToast('Note saved!');
+  }
+
+  /* ── Toast ── */
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  /* ── Helpers ── */
+  function capitalize(str) {
+    return str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+
+  /* ── Filming Tracker ── */
+  function toggleFilm(row) {
+    const toggle = row.querySelector('.filming-toggle');
+    const pill   = row.querySelector('.filming-status');
+    const filmed = toggle.classList.contains('filmed');
+    toggle.classList.toggle('filmed',     !filmed);
+    toggle.classList.toggle('not-filmed',  filmed);
+    pill.textContent = filmed ? 'Not Filmed' : 'Filmed';
+    pill.className   = 'filming-status ' + (filmed ? 'status-not-filmed' : 'status-filmed');
+    updateFilmCounts();
+  }
+  function updateFilmCounts() {
+    const rows = document.querySelectorAll('.filming-item');
+    let f = 0;
+    rows.forEach(r => { if (r.querySelector('.filming-toggle').classList.contains('filmed')) f++; });
+    document.getElementById('filmed-count').textContent   = f;
+    document.getElementById('unfilmed-count').textContent = rows.length - f;
+  }
+  function resetFilming() {
+    document.querySelectorAll('.filming-item').forEach(row => {
+      const toggle = row.querySelector('.filming-toggle');
+      const pill   = row.querySelector('.filming-status');
+      toggle.classList.remove('filmed');
+      toggle.classList.add('not-filmed');
+      pill.textContent = 'Not Filmed';
+      pill.className   = 'filming-status status-not-filmed';
+    });
+    updateFilmCounts();
+    showToast('Filming tracker reset.');
+  }
+
+  /* ── Enter key support ── */
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const lf = document.getElementById('login-form');
+    const sf = document.getElementById('signup-form');
+    if (lf.style.display !== 'none' && document.getElementById('auth-screen').classList.contains('active')) handleLogin();
+    if (sf.style.display !== 'none' && document.getElementById('auth-screen').classList.contains('active')) handleSignUp();
+  });
+</script>
+</body>
+</html>
