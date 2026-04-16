@@ -88,43 +88,105 @@ function clearMessages() {
 /* ─────────────────────────────────────────────
    AUTH
 ───────────────────────────────────────────── */
-function handleLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const pass  = document.getElementById('login-pass').value;
+async function handleLogin() {
+  const email  = document.getElementById('login-email').value.trim();
+  const pass   = document.getElementById('login-pass').value;
+  const errEl  = document.getElementById('login-error');
+  const btn    = document.querySelector('#login-form .btn-primary');
+
+  errEl.style.display = 'none';
+
   if (!email || !pass) {
-    document.getElementById('login-error').textContent = 'Please enter your email and password.';
-    document.getElementById('login-error').style.display = 'block';
+    errEl.textContent = 'Please enter your email and password.';
+    errEl.style.display = 'block';
     return;
   }
-  const stored = JSON.parse(localStorage.getItem('forfx_user') || 'null');
-  if (stored && stored.email === email) {
-    currentUser = stored;
-  } else {
-    currentUser = { name: email.split('@')[0].replace(/[._]/g, ' '), email };
+
+  btn.disabled    = true;
+  btn.textContent = 'Signing in…';
+
+  try {
+    const res  = await fetch('http://localhost:3000/api/auth/login', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, password: pass }),
+    });
+    const json = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = json.message || 'Login failed.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    localStorage.setItem('forfx_user', JSON.stringify(json.data));
+    currentUser = json.data;
+    enterDashboard();
+  } catch (err) {
+    errEl.textContent = 'Could not reach the server. Please try again.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = 'Sign In';
   }
-  document.getElementById('login-error').style.display = 'none';
-  enterDashboard();
 }
 
-function handleSignUp() {
-  const name  = document.getElementById('signup-name').value.trim();
-  const email = document.getElementById('signup-email').value.trim();
-  const pass  = document.getElementById('signup-pass').value;
-  document.getElementById('signup-error').style.display = 'none';
+async function handleSignUp() {
+  const name   = document.getElementById('signup-name').value.trim();
+  const email  = document.getElementById('signup-email').value.trim();
+  const pass   = document.getElementById('signup-pass').value;
+  const errEl  = document.getElementById('signup-error');
+  const okEl   = document.getElementById('signup-success');
+  const btn    = document.querySelector('#signup-form .btn-primary');
+
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+
   if (!name || !email || !pass) {
-    document.getElementById('signup-error').style.display = 'block';
+    errEl.textContent   = 'Please fill in all fields.';
+    errEl.style.display = 'block';
     return;
   }
-  localStorage.setItem('forfx_user', JSON.stringify({ name, email }));
-  document.getElementById('signup-success').style.display = 'block';
-  setTimeout(() => {
-    document.getElementById('signup-success').style.display = 'none';
-    showLogin();
-    document.getElementById('login-email').value = email;
-  }, 1800);
+
+  btn.disabled    = true;
+  btn.textContent = 'Creating account…';
+
+  try {
+    const res  = await fetch('http://localhost:3000/api/auth/register', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ name, email, password: pass, role: 'creator' }),
+    });
+    const json = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent   = json.message || 'Registration failed.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    okEl.textContent  = 'Account created! Please login.';
+    okEl.style.display = 'block';
+    document.getElementById('signup-name').value  = '';
+    document.getElementById('signup-email').value = '';
+    document.getElementById('signup-pass').value  = '';
+    setTimeout(() => {
+      okEl.style.display = 'none';
+      showLogin();
+      document.getElementById('login-email').value = email;
+    }, 1800);
+  } catch (err) {
+    errEl.textContent   = 'Could not reach the server. Please try again.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = 'Create Account';
+  }
 }
 
 function handleLogout() {
+  localStorage.removeItem('forfx_user');
+  currentUser = { name: '', role: '' };
   show('auth-screen');
   showLogin();
   document.getElementById('login-email').value = '';
@@ -389,6 +451,20 @@ function resetFilming() {
   updateFilmCounts();
   showToast('Filming tracker reset.');
 }
+
+/* ─────────────────────────────────────────────
+   STARTUP — restore session or redirect to login
+───────────────────────────────────────────── */
+(function init() {
+  const stored = JSON.parse(localStorage.getItem('forfx_user') || 'null');
+  if (stored && stored.name) {
+    currentUser = stored;
+    enterDashboard();
+  } else {
+    show('auth-screen');
+    showLogin();
+  }
+})();
 
 /* ─────────────────────────────────────────────
    ENTER KEY SUPPORT (auth forms)

@@ -7,6 +7,209 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Content Posts: Page Header ─────────────── */
+    .cp-page-header {
+      display: flex; align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px; gap: 16px; flex-wrap: wrap;
+    }
+    .cp-page-header h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .cp-page-header p  { font-size: 13px; color: var(--c-text-2); }
+
+    /* ── Content Posts: Table Card ───────────────── */
+    .cp-posts-card          { padding: 0 !important; overflow: hidden; }
+    .cp-posts-card:hover    { transform: none !important; box-shadow: var(--shadow-card) !important; }
+    #cp-table-wrap          { overflow-x: auto; min-height: 100px; }
+
+    .cp-table               { width: 100%; border-collapse: collapse; }
+    .cp-table th {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--c-text-2);
+      padding: 14px 16px; text-align: left;
+      border-bottom: 1px solid var(--c-border);
+      white-space: nowrap;
+    }
+    .cp-table th:first-child { padding-left: 22px; }
+    .cp-table th:last-child  { padding-right: 22px; text-align: right; }
+    .cp-table td {
+      padding: 12px 16px; font-size: 13px;
+      border-bottom: 1px solid var(--c-border-2);
+      vertical-align: middle;
+    }
+    .cp-table td:first-child  { padding-left: 22px; }
+    .cp-table td:last-child   { padding-right: 22px; text-align: right; }
+    .cp-table tr:last-child td { border-bottom: none; }
+    .cp-table tbody tr { transition: background 0.15s ease; }
+    .cp-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+    .cp-title-cell {
+      font-weight: 500; max-width: 220px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .cp-platform-cell { color: var(--c-text-2); }
+
+    /* ── Status Badges ───────────────────────────── */
+    .cp-badge {
+      display: inline-flex; align-items: center;
+      font-size: 10px; font-weight: 600; letter-spacing: 0.03em;
+      padding: 3px 9px; border-radius: var(--r-full); white-space: nowrap;
+    }
+    .cp-badge-draft     { background: rgba(100,100,100,0.18); color: var(--c-text-2); }
+    .cp-badge-in-review { background: var(--c-amber-2);       color: var(--c-amber); }
+    .cp-badge-approved  { background: var(--c-green-2);        color: var(--c-green); }
+    .cp-badge-published { background: var(--c-blue-2);         color: var(--c-blue); }
+
+    /* ── Row Action Buttons ──────────────────────── */
+    .cp-actions { display: inline-flex; gap: 6px; }
+    .cp-btn-edit, .cp-btn-del {
+      font-size: 11px; font-weight: 600;
+      padding: 5px 12px; border-radius: var(--r-md);
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .cp-btn-edit {
+      background: rgba(245,197,24,0.08); color: var(--c-accent);
+      border: 1px solid rgba(245,197,24,0.2);
+    }
+    .cp-btn-edit:hover { background: rgba(245,197,24,0.18); border-color: rgba(245,197,24,0.42); }
+    .cp-btn-del {
+      background: rgba(239,68,68,0.08); color: var(--c-red);
+      border: 1px solid rgba(239,68,68,0.2);
+    }
+    .cp-btn-del:hover  { background: rgba(239,68,68,0.18);  border-color: rgba(239,68,68,0.42); }
+
+    /* ── Empty / Loading State ───────────────────── */
+    .cp-empty {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 12px; padding: 52px 20px;
+      font-size: 13px; color: var(--c-text-2); text-align: center;
+    }
+    .cp-empty svg { opacity: 0.16; }
+
+    /* ── Overlay (shared) ────────────────────────── */
+    .cp-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      z-index: 600;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+
+    /* ── Modal Box ───────────────────────────────── */
+    .cp-modal-box {
+      background: linear-gradient(160deg, #1e1e1e 0%, #161410 100%);
+      border: 1px solid rgba(245,197,24,0.15);
+      border-radius: var(--r-xl);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.04);
+      width: 100%; max-width: 560px;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .cp-mh {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--c-border);
+    }
+    .cp-mh h3 { font-size: 16px; font-weight: 700; }
+    .cp-close-btn {
+      width: 30px; height: 30px; border-radius: var(--r-md);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; line-height: 1; color: var(--c-text-2);
+      transition: 0.15s ease;
+    }
+    .cp-close-btn:hover { background: rgba(239,68,68,0.12); color: var(--c-red); border-color: rgba(239,68,68,0.3); }
+
+    /* Modal form */
+    .cp-mb { padding: 20px 24px 24px; }
+    .cp-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .cp-fg { display: flex; flex-direction: column; }
+    .cp-fg.full { grid-column: 1 / -1; }
+    .cp-fg label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--c-text-2); margin-bottom: 6px;
+    }
+    .cp-fg input,
+    .cp-fg select,
+    .cp-fg textarea {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--r-md);
+      padding: 10px 13px;
+      font-size: 13px; color: var(--c-text); font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .cp-fg select {
+      appearance: none; -webkit-appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a0a0a0' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 13px center;
+      background-color: rgba(255,255,255,0.04);
+      padding-right: 38px;
+    }
+    .cp-fg select option { background: #1e1e1e; color: #fff; }
+    .cp-fg input[type="date"] { color-scheme: dark; }
+    .cp-fg input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.65); cursor: pointer; }
+    .cp-fg input:focus,
+    .cp-fg select:focus,
+    .cp-fg textarea:focus {
+      border-color: rgba(245,197,24,0.5);
+      box-shadow: 0 0 0 3px rgba(245,197,24,0.07);
+    }
+    .cp-fg input::placeholder,
+    .cp-fg textarea::placeholder { color: var(--c-text-3); }
+    .cp-fg textarea { resize: vertical; min-height: 72px; }
+
+    .cp-modal-err {
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+      color: #fca5a5; border-radius: var(--r-md);
+      padding: 10px 14px; font-size: 12px; margin-bottom: 14px; display: none;
+    }
+    .cp-mf { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    .cp-btn-cancel {
+      background: rgba(255,255,255,0.05); color: var(--c-text-2);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--r-md); padding: 9px 18px;
+      font-size: 13px; font-weight: 500; transition: 0.15s ease;
+    }
+    .cp-btn-cancel:hover { background: rgba(255,255,255,0.09); color: var(--c-text); }
+    .cp-btn-submit {
+      background: rgba(245,197,24,0.14); color: var(--c-accent);
+      border: 1px solid rgba(245,197,24,0.35);
+      border-radius: var(--r-md); padding: 9px 20px;
+      font-size: 13px; font-weight: 600;
+      transition: 0.15s ease;
+    }
+    .cp-btn-submit:hover:not(:disabled) { background: rgba(245,197,24,0.24); box-shadow: var(--shadow-glow); }
+    .cp-btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Confirm Dialog ──────────────────────────── */
+    .cp-confirm-box {
+      background: linear-gradient(160deg, #1e1e1e 0%, #161410 100%);
+      border: 1px solid rgba(239,68,68,0.22);
+      border-radius: var(--r-xl);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.8);
+      width: 100%; max-width: 340px;
+      padding: 30px 28px; text-align: center;
+    }
+    .cp-confirm-box h4 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .cp-confirm-box p  { font-size: 13px; color: var(--c-text-2); margin-bottom: 24px; line-height: 1.6; }
+    .cp-confirm-btns   { display: flex; gap: 10px; justify-content: center; }
+    .cp-btn-del-confirm {
+      background: rgba(239,68,68,0.14); color: var(--c-red);
+      border: 1px solid rgba(239,68,68,0.35);
+      border-radius: var(--r-md); padding: 9px 20px;
+      font-size: 13px; font-weight: 600; transition: 0.15s ease;
+    }
+    .cp-btn-del-confirm:hover:not(:disabled) { background: rgba(239,68,68,0.26); }
+    .cp-btn-del-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    @media (max-width: 600px) {
+      .cp-form-grid { grid-template-columns: 1fr; }
+      .cp-fg.full   { grid-column: 1; }
+    }
+  </style>
 </head>
 <body>
 
@@ -151,6 +354,13 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           </span>
           <span class="nav-label">Brand Assets</span>
+        </button>
+
+        <button class="nav-link" data-page="content-posts" data-label="Content Posts" onclick="setNav(this)">
+          <span class="nav-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/></svg>
+          </span>
+          <span class="nav-label">Content Posts</span>
         </button>
       </div>
 
@@ -860,6 +1070,28 @@
 
         </section>
 
+        <!-- ── PAGE: content-posts ── -->
+        <section id="page-content-posts" class="page">
+
+          <div class="cp-page-header">
+            <div>
+              <h2>Content Posts</h2>
+              <p>Manage all your scheduled and published content across platforms.</p>
+            </div>
+            <button class="btn-sm" onclick="openPostModal()">+ Add New Post</button>
+          </div>
+
+          <div class="card cp-posts-card">
+            <div id="cp-table-wrap">
+              <div class="cp-empty">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Loading posts…
+              </div>
+            </div>
+          </div>
+
+        </section>
+
         <!-- ── Placeholder pages ── -->
         <section id="page-videos"      class="page"><div class="placeholder-page"><div class="ph-icon">🎬</div><h3>Video Projects</h3><p>Track all your video productions, timelines, and editing status in one place.</p></div></section>
         <section id="page-assets"      class="page"><div class="placeholder-page"><div class="ph-icon">🖼️</div><h3>Brand Assets</h3><p>Store logos, templates, color palettes, and brand guidelines for quick access.</p></div></section>
@@ -873,8 +1105,358 @@
   </div><!-- /main-area -->
 </div><!-- /dashboard-screen -->
 
+<!-- ══════════════════════════════════════════════════
+     CONTENT POSTS: ADD / EDIT MODAL
+══════════════════════════════════════════════════ -->
+<div id="cp-modal" class="cp-overlay" style="display:none" onclick="cpModalOverlayClick(event)">
+  <div class="cp-modal-box" id="cp-modal-box">
+
+    <div class="cp-mh">
+      <h3 id="cp-modal-title">Add New Post</h3>
+      <button class="cp-close-btn" onclick="closePostModal()" aria-label="Close">&#10005;</button>
+    </div>
+
+    <div class="cp-mb">
+      <div class="cp-modal-err" id="cp-modal-err"></div>
+
+      <div class="cp-form-grid">
+
+        <div class="cp-fg full">
+          <label for="cp-f-title">Title <span style="color:var(--c-red)">*</span></label>
+          <input type="text" id="cp-f-title" placeholder="e.g. FORFX Prop Firm Overview – Reel" />
+        </div>
+
+        <div class="cp-fg">
+          <label for="cp-f-platform">Platform</label>
+          <select id="cp-f-platform">
+            <option value="Instagram">Instagram</option>
+            <option value="YouTube">YouTube</option>
+            <option value="LinkedIn">LinkedIn</option>
+          </select>
+        </div>
+
+        <div class="cp-fg">
+          <label for="cp-f-content-type">Content Type</label>
+          <select id="cp-f-content-type">
+            <option value="Reel">Reel</option>
+            <option value="Story">Story</option>
+            <option value="Post">Post</option>
+            <option value="Short">Short</option>
+            <option value="Video">Video</option>
+            <option value="Carousel">Carousel</option>
+          </select>
+        </div>
+
+        <div class="cp-fg">
+          <label for="cp-f-status">Status</label>
+          <select id="cp-f-status">
+            <option value="Draft">Draft</option>
+            <option value="In Review">In Review</option>
+            <option value="Approved">Approved</option>
+            <option value="Published">Published</option>
+          </select>
+        </div>
+
+        <div class="cp-fg">
+          <label for="cp-f-scheduled">Scheduled Date</label>
+          <input type="date" id="cp-f-scheduled" />
+        </div>
+
+        <div class="cp-fg full">
+          <label for="cp-f-caption">Caption</label>
+          <textarea id="cp-f-caption" placeholder="Optional caption for this post…"></textarea>
+        </div>
+
+        <div class="cp-fg full">
+          <label for="cp-f-notes">Notes</label>
+          <textarea id="cp-f-notes" placeholder="Internal notes or reminders…"></textarea>
+        </div>
+
+      </div>
+
+      <div class="cp-mf">
+        <button class="cp-btn-cancel" onclick="closePostModal()">Cancel</button>
+        <button class="cp-btn-submit" id="cp-submit-btn" onclick="submitPost()">Add Post</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     CONTENT POSTS: DELETE CONFIRM
+══════════════════════════════════════════════════ -->
+<div id="cp-confirm" class="cp-overlay" style="display:none" onclick="cpConfirmOverlayClick(event)">
+  <div class="cp-confirm-box" id="cp-confirm-box">
+    <h4>Delete Post</h4>
+    <p>Are you sure you want to delete this post?<br>This action cannot be undone.</p>
+    <div class="cp-confirm-btns">
+      <button class="cp-btn-cancel" onclick="cancelDelete()">Cancel</button>
+      <button class="cp-btn-del-confirm" id="cp-confirm-del-btn" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+
 <div class="toast" id="toast"></div>
 
 <script src="app.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   CONTENT POSTS — CRUD
+═══════════════════════════════════════════════════ */
+
+const CP_API = 'http://localhost:3000/api/content-posts';
+
+let _cpPosts    = [];   // cache of loaded posts
+let _cpEditId   = null; // id being edited (null = new)
+let _cpDeleteId = null; // id queued for deletion
+
+/* ─── Helpers ─── */
+function cpEsc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function cpStatusBadge(status) {
+  const cls = {
+    'Draft':      'cp-badge-draft',
+    'In Review':  'cp-badge-in-review',
+    'Approved':   'cp-badge-approved',
+    'Published':  'cp-badge-published',
+  }[status] || 'cp-badge-draft';
+  return `<span class="cp-badge ${cls}">${cpEsc(status)}</span>`;
+}
+
+function cpFmtDate(iso) {
+  if (!iso) return '<span style="color:var(--c-text-3)">—</span>';
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+/* ─── Load & Render ─── */
+async function loadContentPosts() {
+  const wrap = document.getElementById('cp-table-wrap');
+  wrap.innerHTML = `<div class="cp-empty">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+    Loading posts…
+  </div>`;
+
+  try {
+    const res  = await fetch(CP_API);
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.message || 'Failed to load');
+    _cpPosts = json.data;
+    renderPostsTable(_cpPosts);
+  } catch (err) {
+    wrap.innerHTML = `<div class="cp-empty" style="color:var(--c-red)">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      ${cpEsc(err.message)}
+    </div>`;
+  }
+}
+
+function renderPostsTable(posts) {
+  const wrap = document.getElementById('cp-table-wrap');
+
+  if (!posts.length) {
+    wrap.innerHTML = `<div class="cp-empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      No posts yet. Click <strong style="color:var(--c-accent);margin:0 4px">+ Add New Post</strong> to create one.
+    </div>`;
+    return;
+  }
+
+  const rows = posts.map(p => `
+    <tr>
+      <td><div class="cp-title-cell" title="${cpEsc(p.title)}">${cpEsc(p.title)}</div></td>
+      <td class="cp-platform-cell">${cpEsc(p.platform)}</td>
+      <td class="cp-platform-cell">${cpEsc(p.content_type)}</td>
+      <td>${cpStatusBadge(p.status)}</td>
+      <td style="white-space:nowrap">${cpFmtDate(p.scheduled_date)}</td>
+      <td>
+        <div class="cp-actions">
+          <button class="cp-btn-edit" onclick="cpEditPost(${p.id})">Edit</button>
+          <button class="cp-btn-del"  onclick="cpDeletePost(${p.id})">Delete</button>
+        </div>
+      </td>
+    </tr>`).join('');
+
+  wrap.innerHTML = `
+    <table class="cp-table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Platform</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Scheduled Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+/* ─── Modal: Open / Close ─── */
+function openPostModal(post) {
+  _cpEditId = post ? post.id : null;
+
+  document.getElementById('cp-modal-title').textContent = post ? 'Edit Post' : 'Add New Post';
+  document.getElementById('cp-modal-err').style.display = 'none';
+
+  document.getElementById('cp-f-title').value        = post ? post.title        : '';
+  document.getElementById('cp-f-platform').value     = post ? post.platform     : 'Instagram';
+  document.getElementById('cp-f-content-type').value = post ? post.content_type : 'Reel';
+  document.getElementById('cp-f-status').value       = post ? post.status       : 'Draft';
+  document.getElementById('cp-f-scheduled').value    = post && post.scheduled_date
+    ? post.scheduled_date.substring(0, 10) : '';
+  document.getElementById('cp-f-caption').value      = post ? (post.caption || '') : '';
+  document.getElementById('cp-f-notes').value        = post ? (post.notes   || '') : '';
+
+  const btn = document.getElementById('cp-submit-btn');
+  btn.textContent = post ? 'Save Changes' : 'Add Post';
+  btn.disabled    = false;
+
+  document.getElementById('cp-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('cp-f-title').focus(), 80);
+}
+
+function closePostModal() {
+  document.getElementById('cp-modal').style.display = 'none';
+  _cpEditId = null;
+}
+
+function cpModalOverlayClick(e) {
+  if (e.target === document.getElementById('cp-modal')) closePostModal();
+}
+
+function cpEditPost(id) {
+  const post = _cpPosts.find(p => p.id === id);
+  if (post) openPostModal(post);
+}
+
+/* ─── Modal: Submit (POST / PUT) ─── */
+async function submitPost() {
+  const title        = document.getElementById('cp-f-title').value.trim();
+  const platform     = document.getElementById('cp-f-platform').value;
+  const content_type = document.getElementById('cp-f-content-type').value;
+  const status       = document.getElementById('cp-f-status').value;
+  const scheduled    = document.getElementById('cp-f-scheduled').value;
+  const caption      = document.getElementById('cp-f-caption').value.trim();
+  const notes        = document.getElementById('cp-f-notes').value.trim();
+
+  const errEl = document.getElementById('cp-modal-err');
+  const btn   = document.getElementById('cp-submit-btn');
+
+  errEl.style.display = 'none';
+
+  if (!title) {
+    errEl.textContent   = 'Title is required.';
+    errEl.style.display = 'block';
+    document.getElementById('cp-f-title').focus();
+    return;
+  }
+
+  const payload = { title, platform, content_type, status };
+  if (scheduled) payload.scheduled_date = scheduled;
+  if (caption)   payload.caption        = caption;
+  if (notes)     payload.notes          = notes;
+
+  const isEdit = _cpEditId !== null;
+  const url    = isEdit ? `${CP_API}/${_cpEditId}` : CP_API;
+  const method = isEdit ? 'PUT' : 'POST';
+
+  btn.disabled    = true;
+  btn.textContent = isEdit ? 'Saving…' : 'Adding…';
+
+  try {
+    const res  = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+    const json = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent   = json.message || 'Something went wrong.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    closePostModal();
+    await loadContentPosts();
+    showToast(isEdit ? 'Post updated successfully.' : 'Post added successfully.');
+  } catch (err) {
+    errEl.textContent   = 'Could not reach the server. Please try again.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = isEdit ? 'Save Changes' : 'Add Post';
+  }
+}
+
+/* ─── Delete: Confirm Flow ─── */
+function cpDeletePost(id) {
+  _cpDeleteId = id;
+  document.getElementById('cp-confirm').style.display = 'flex';
+}
+
+function cancelDelete() {
+  document.getElementById('cp-confirm').style.display = 'none';
+  _cpDeleteId = null;
+}
+
+function cpConfirmOverlayClick(e) {
+  if (e.target === document.getElementById('cp-confirm')) cancelDelete();
+}
+
+async function confirmDelete() {
+  if (!_cpDeleteId) return;
+  const btn = document.getElementById('cp-confirm-del-btn');
+  btn.disabled    = true;
+  btn.textContent = 'Deleting…';
+
+  try {
+    const res  = await fetch(`${CP_API}/${_cpDeleteId}`, { method: 'DELETE' });
+    const json = await res.json();
+
+    if (!res.ok) {
+      showToast(json.message || 'Delete failed.');
+      return;
+    }
+
+    cancelDelete();
+    await loadContentPosts();
+    showToast('Post deleted.');
+  } catch (err) {
+    showToast('Could not reach the server.');
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = 'Delete';
+  }
+}
+
+/* ─── Keyboard: Escape closes modals ─── */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('cp-modal').style.display   !== 'none') closePostModal();
+  if (document.getElementById('cp-confirm').style.display !== 'none') cancelDelete();
+});
+
+/* ─── Patch navigateTo to auto-load posts on nav ─── */
+(function() {
+  const _orig = navigateTo;
+  navigateTo = function(page) {
+    _orig(page);
+    if (page === 'content-posts') loadContentPosts();
+  };
+  // Handle direct load via URL hash (e.g. #content-posts on page open)
+  if (document.getElementById('page-content-posts').classList.contains('active')) {
+    loadContentPosts();
+  }
+})();
+</script>
 </body>
 </html>
