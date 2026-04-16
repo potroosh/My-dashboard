@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 
 const healthRouter = require("./routes/health");
+const authRouter = require("./routes/auth");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,6 +14,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/health", healthRouter);
+app.use("/api/auth", authRouter);
 
 // 404 fallback
 app.use((req, res) => {
