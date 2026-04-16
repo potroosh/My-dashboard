@@ -1,121 +1,162 @@
 # FORFX Content Studio Dashboard
 
-A single-page content management dashboard built for the FORFX brand. Tracks upcoming posts, scripts, filming progress, content ideas, and platform analytics — all in one glassmorphism dark-theme interface.
+A full-stack content management dashboard for the FORFX prop trading brand. Manage posts, scripts, filming, analytics, and platform content across Instagram, YouTube, and LinkedIn — all in one dark/gold interface.
 
 ---
 
-## Overview
+## Tech Stack
 
-This dashboard is designed for a content creator managing the FORFX prop trading brand across Instagram, YouTube, and LinkedIn. It provides a real-time operational view of the content pipeline: from idea to script to filming to publishing.
+| Layer | Technology |
+|---|---|
+| Frontend | HTML5, CSS3 (custom properties), Vanilla JS (ES6+) |
+| Backend | Node.js, Express 4 |
+| ORM | Prisma |
+| Database | PostgreSQL |
+| Auth | bcrypt password hashing |
+
+No build tools or bundlers required.
 
 ---
 
 ## Features
 
-| Feature | Description |
-|---|---|
-| **Auth screen** | Login and sign-up with localStorage persistence |
-| **Dashboard** | Welcome banner, stat cards, upcoming posts, script queue, filming tracker, engagement charts, goals, and quick note |
-| **Content Calendar** | Upcoming scheduled posts with platform tags and times |
-| **Script Library** | Full script queue with status pills (Approved / In Review / Draft) |
-| **Ideas Board** | Content idea cards with platform chips |
-| **Analytics** | Weekly engagement bar charts for Instagram and YouTube |
-| **Filming Tracker** | Toggle filmed/not-filmed per item with live counter |
-| **Profile Page** | Creator profile with avatar, role, company stats, and edit button |
-| **Notification Dropdown** | Bell icon shows a glass-style dropdown with live notifications pulled from content data |
-| **Live Search** | Search bar filters across upcoming posts, scripts, filming tracker, and ideas; highlights matches and navigates on click |
-| **Logo Home Route** | Clicking the FORFX sidebar logo always returns to Dashboard |
+- **Login / Sign Up** — real API auth with bcrypt, session persisted in localStorage
+- **Content Posts** — full CRUD table (create, edit, delete) backed by PostgreSQL
+- **Dashboard** — welcome banner, stat cards, upcoming posts, script queue, filming tracker, engagement charts, and monthly goals
+- **Content Calendar** — scheduled posts with platform tags
+- **Script Library** — script queue with status pills (Approved / In Review / Draft)
+- **Ideas Board** — content idea cards with platform chips
+- **Analytics** — weekly engagement bar charts for Instagram and YouTube
+- **Filming Tracker** — toggle filmed/not-filmed per item with live counter
+- **Profile Page** — creator profile with stats
+- **Live Search** — filters across posts, scripts, filming tracker, and ideas
+- **Notification Dropdown** — bell icon with notification panel
 
 ---
 
-## File Structure
+## Folder Structure
 
 ```
 my-dashboard/
-├── index.html      # HTML structure only — all pages and components
-├── style.css       # All CSS — variables, layout, components, responsive
-├── app.js          # All JavaScript — routing, auth, search, notifications, interactions
-└── README.md       # This file
+├── frontend/
+│   ├── index.html          # SPA shell — all pages, components, and modals
+│   ├── style.css           # Design system — variables, layout, all components
+│   └── app.js              # Client JS — routing, auth, CRUD, search, notifications
+├── backend/
+│   ├── controllers/
+│   │   ├── authController.js           # register, login
+│   │   ├── contentPostsController.js   # GET, POST, PUT, DELETE
+│   │   └── healthController.js
+│   ├── routes/
+│   │   ├── auth.js
+│   │   ├── contentPosts.js
+│   │   └── health.js
+│   ├── prisma/
+│   │   ├── schema.prisma       # User and ContentPost models
+│   │   └── migrations/
+│   ├── server.js               # Express app entry point
+│   ├── package.json
+│   ├── .env                    # Local environment (gitignored)
+│   └── .env.example            # Template — copy this to .env
+├── index.html                  # Root redirect → frontend/index.html
+├── .gitignore
+└── README.md
 ```
 
 ---
 
-## Routing System
+## API Endpoints
 
-Pages are routed via hash (`#dashboard`, `#profile`, `#scripts`, etc.) and managed by `navigateTo(page)` in `app.js`. Every nav link, the logo, and the header avatar are wired into this system.
-
-Available routes:
-
-| Route | Page |
-|---|---|
-| `#dashboard` | Main overview |
-| `#calendar` | Upcoming posts |
-| `#analytics` | Engagement charts |
-| `#scripts` | Script library |
-| `#ideas` | Ideas board |
-| `#videos` | Video projects |
-| `#assets` | Brand assets |
-| `#instagram` | Instagram |
-| `#youtube` | YouTube |
-| `#linkedin` | LinkedIn |
-| `#profile` | Creator profile |
-| `#preferences` | Preferences |
+| Method | Route | Description |
+|---|---|---|
+| `GET` | `/api/health` | Health check |
+| `POST` | `/api/auth/register` | Create a new account |
+| `POST` | `/api/auth/login` | Log in |
+| `GET` | `/api/content-posts` | List all posts |
+| `POST` | `/api/content-posts` | Create a post |
+| `PUT` | `/api/content-posts/:id` | Update a post |
+| `DELETE` | `/api/content-posts/:id` | Delete a post |
 
 ---
 
-## How to Edit Data
+## Running Locally
 
-All content is hardcoded in `app.js` and `index.html`. Here is where to find each section:
+### Prerequisites
 
-### Upcoming Posts / Calendar
-Edit the `<ul class="calendar-list">` blocks in `index.html` inside `#page-dashboard` and `#page-calendar`.
+- Node.js 18+
+- PostgreSQL running locally
 
-### Script Queue
-Edit the `<ul class="script-list">` blocks in `#page-dashboard` and `#page-scripts`. Change `pill-approved`, `pill-review`, or `pill-draft` to update a script's status.
+### 1. Clone the repo
 
-### Filming Tracker
-Edit `<ul id="filming-list">` in `#page-dashboard`. Set `.filming-toggle` class to `filmed` or `not-filmed` and update `.filming-status` text accordingly.
-
-### Content Ideas
-Edit `.idea-cards` inside `#page-dashboard` and `#page-ideas`.
-
-### Notifications
-Edit the `NOTIFICATIONS` array at the top of `app.js`:
-
-```js
-const NOTIFICATIONS = [
-  {
-    title: '📝 Script in review: FORFX vs Competitors',
-    sub:   'Awaiting approval · Script Library',
-    page:  'scripts'   // page to navigate to on click
-  },
-  // add more here
-];
+```bash
+git clone https://github.com/potroosh/My-dashboard.git
+cd My-dashboard
 ```
 
-The badge count updates automatically to match the array length.
+### 2. Install backend dependencies
 
-### Search Index
-Edit the `SEARCH_DATA` array at the top of `app.js`:
-
-```js
-const SEARCH_DATA = [
-  { text: 'Item title', sub: 'Subtitle / meta', page: 'scripts', section: 'Scripts' },
-  // add more here
-];
+```bash
+cd backend
+npm install
 ```
 
-### Profile Info
-Edit `#page-profile` in `index.html` to update the name, role, company, or stats.
+### 3. Set up environment variables
+
+```bash
+cp .env.example .env
+```
+
+Open `backend/.env` and fill in your values:
+
+```env
+DATABASE_URL="postgresql://your_user:your_password@localhost:5432/your_db"
+PORT=3000
+```
+
+### 4. Create the PostgreSQL database
+
+```bash
+psql -U postgres
+CREATE DATABASE dashboard_db;
+CREATE USER dashboard_user WITH PASSWORD 'yourpassword';
+GRANT ALL PRIVILEGES ON DATABASE dashboard_db TO dashboard_user;
+\q
+```
+
+### 5. Run database migrations
+
+```bash
+cd backend
+npx prisma migrate dev
+```
+
+### 6. Start the backend server
+
+```bash
+npm run dev        # development (nodemon, auto-restarts)
+# or
+npm start          # production
+```
+
+The API will be running at `http://localhost:3000`.
+
+### 7. Open the frontend
+
+Open `frontend/index.html` directly in your browser, or serve it with any static file server:
+
+```bash
+npx serve frontend
+```
+
+Then go to `http://localhost:3000` (or wherever the static server runs).
 
 ---
 
-## GitHub Pages
+## Environment Variables
 
-This project deploys directly from the `main` branch root. No build step required.
+| Variable | Description | Example |
+|---|---|---|
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@localhost:5432/db` |
+| `PORT` | Port the Express server listens on | `3000` |
 
-To deploy:
-1. Push to `main`
-2. Go to **Settings → Pages** in your GitHub repo
-3. Set source to **Deploy from branch → main → / (root)**
-4. The site will be live at `https://<username>.github.io/<repo-name>/`
+Never commit your `.env` file. It is listed in `.gitignore`.
